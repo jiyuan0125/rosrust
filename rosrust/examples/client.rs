@@ -5,7 +5,7 @@ mod msg {
 }
 
 fn main() {
-    env_logger::init();
+    // env_logger::init();
 
     // Fetch args that are not meant for rosrust
     let args: Vec<_> = rosrust::args();

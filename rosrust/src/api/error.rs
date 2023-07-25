@@ -8,7 +8,7 @@ error_chain::error_chain! {
         Io(::std::io::Error);
         FromUTF8(::std::string::FromUtf8Error);
         Response(ResponseError);
-        SigintOverride(::ctrlc::Error);
+        // SigintOverride(::ctrlc::Error);
     }
     links {
         XmlRpc(rosxmlrpc::Error, rosxmlrpc::ErrorKind);

@@ -384,18 +384,31 @@ impl Ros {
         )
     }
 
-    fn log_to_terminal(&self, level: i8, msg: &str, file: &str, line: u32) {
-        use colored::{Color, Colorize};
+    // fn log_to_terminal(&self, level: i8, msg: &str, file: &str, line: u32) {
+    //     use colored::{Color, Colorize};
 
+    //     let format_string =
+    //         |prefix, color| format!("[{} @ {}:{}]: {}", prefix, file, line, msg).color(color);
+
+    //     match level {
+    //         Log::DEBUG => println!("{}", format_string("DEBUG", Color::White)),
+    //         Log::INFO => println!("{}", format_string("INFO", Color::White)),
+    //         Log::WARN => eprintln!("{}", format_string("WARN", Color::Yellow)),
+    //         Log::ERROR => eprintln!("{}", format_string("ERROR", Color::Red)),
+    //         Log::FATAL => eprintln!("{}", format_string("FATAL", Color::Red)),
+    //         _ => {}
+    //     }
+    // }
+    fn log_to_terminal(&self, level: i8, msg: &str, file: &str, line: u32) {
         let format_string =
-            |prefix, color| format!("[{} @ {}:{}]: {}", prefix, file, line, msg).color(color);
+            |prefix| format!("[{} @ {}:{}]: {}", prefix, file, line, msg);
 
         match level {
-            Log::DEBUG => println!("{}", format_string("DEBUG", Color::White)),
-            Log::INFO => println!("{}", format_string("INFO", Color::White)),
-            Log::WARN => eprintln!("{}", format_string("WARN", Color::Yellow)),
-            Log::ERROR => eprintln!("{}", format_string("ERROR", Color::Red)),
-            Log::FATAL => eprintln!("{}", format_string("FATAL", Color::Red)),
+            Log::DEBUG => println!("{}", format_string("DEBUG")),
+            Log::INFO => println!("{}", format_string("INFO")),
+            Log::WARN => eprintln!("{}", format_string("WARN")),
+            Log::ERROR => eprintln!("{}", format_string("ERROR")),
+            Log::FATAL => eprintln!("{}", format_string("FATAL")),
             _ => {}
         }
     }

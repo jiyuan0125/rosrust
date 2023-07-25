@@ -7,7 +7,7 @@ use crate::util::FAILED_TO_LOCK;
 use byteorder::{LittleEndian, ReadBytesExt};
 use error_chain::bail;
 use log::error;
-use socket2::Socket;
+// use socket2::Socket;
 use std::collections::HashMap;
 use std::io;
 use std::io::{Read, Write};
@@ -95,14 +95,20 @@ fn connect_to_tcp_attempt(
         }
         None => TcpStream::connect(trimmed_uri)?,
     };
-    let socket: Socket = stream.into();
+    // let socket: Socket = stream.into();
+    // if let Some(timeout) = timeout {
+    //     // In case defaults are not None, only apply if a timeout is passed
+    //     socket.set_read_timeout(Some(timeout))?;
+    //     socket.set_write_timeout(Some(timeout))?;
+    // }
+    // socket.set_linger(None)?;
+        
     if let Some(timeout) = timeout {
-        // In case defaults are not None, only apply if a timeout is passed
-        socket.set_read_timeout(Some(timeout))?;
-        socket.set_write_timeout(Some(timeout))?;
+        stream.set_read_timeout(Some(timeout))?;
+        stream.set_write_timeout(Some(timeout))?;
     }
-    socket.set_linger(None)?;
-    let stream: TcpStream = socket.into();
+    stream.set_linger(None)?;
+    // let stream: TcpStream = socket.into();
     Ok(stream)
 }
 

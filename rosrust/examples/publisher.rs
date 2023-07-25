@@ -3,7 +3,7 @@ mod msg {
 }
 
 fn main() {
-    env_logger::init();
+    // env_logger::init();
 
     // Initialize node
     rosrust::init("talker");

@@ -1,4 +1,5 @@
 #![recursion_limit = "1024"]
+#![feature(tcp_linger)]
 
 pub use crate::api::raii::{Publisher, Service, Subscriber};
 pub use crate::api::handlers::{SubscriptionHandler};

@@ -7,7 +7,7 @@ use crate::tcpros::{Client, Message, ServicePair, ServiceResult};
 use crate::util::FAILED_TO_LOCK;
 use crate::{RawMessageDescription, SubscriptionHandler};
 use crossbeam::sync::ShardedLock;
-use ctrlc;
+// use ctrlc;
 use error_chain::bail;
 use lazy_static::lazy_static;
 use ros_message::{Duration, Time};
@@ -47,12 +47,12 @@ pub fn try_init_with_options(name: &str, capture_sigint: bool) -> Result<()> {
         bail!(ErrorKind::MultipleInitialization);
     }
     let client = Ros::new(name)?;
-    if capture_sigint {
-        let shutdown_sender = client.shutdown_sender();
-        ctrlc::set_handler(move || {
-            shutdown_sender.shutdown();
-        })?;
-    }
+    // if capture_sigint {
+    //     let shutdown_sender = client.shutdown_sender();
+    //     ctrlc::set_handler(move || {
+    //         shutdown_sender.shutdown();
+    //     })?;
+    // }
     *ros = Some(client);
     Ok(())
 }
