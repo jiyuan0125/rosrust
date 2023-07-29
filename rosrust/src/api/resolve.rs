@@ -1,11 +1,14 @@
 use std::{self, env};
 
-pub fn master() -> String {
+pub fn master(master_uri: Option<&str>) -> String {
     // if let Some(v) = find_with_prefix("__master:=") {
     //     return v;
     // }
     // env::var("ROS_MASTER_URI").unwrap_or_else(|_| String::from("http://localhost:11311/"))
-    String::from("http://localhost:11311/")
+    match master_uri {
+        Some(v) => String::from(v),
+        None => String::from("http://localhost:11311/"),
+    }
 }
 
 pub fn hostname() -> String {
@@ -81,14 +84,14 @@ fn find_with_prefix(prefix: &str) -> Option<String> {
         .map(|v| String::from(v.trim_start_matches(prefix)))
 }
 
-#[cfg(not(test))]
-fn system_hostname() -> String {
-    // ::hostname::get()
-    //     .expect("Unable to retrieve hostname from the system.")
-    //     .to_string_lossy()
-    //     .into_owned()
-    String::from("10.0.0.2")
-}
+// #[cfg(not(test))]
+// fn system_hostname() -> String {
+//     // ::hostname::get()
+//     //     .expect("Unable to retrieve hostname from the system.")
+//     //     .to_string_lossy()
+//     //     .into_owned()
+//     String::from("10.0.0.2")
+// }
 
 #[cfg(test)]
 fn system_hostname() -> String {
@@ -310,9 +313,9 @@ mod tests {
         let testcase = TESTCASE.lock().expect(FAILED_TO_LOCK);
         set_args(&[]);
         env::remove_var("ROS_MASTER_URI");
-        assert_eq!(String::from("http://localhost:11311/"), master());
+        assert_eq!(String::from("http://localhost:11311/"), master(None));
         set_args(&["unimportant", "also_unimportant"]);
-        assert_eq!(String::from("http://localhost:11311/"), master());
+        assert_eq!(String::from("http://localhost:11311/"), master(None));
     }
 
     #[test]
@@ -321,9 +324,9 @@ mod tests {
         let testcase = TESTCASE.lock().expect(FAILED_TO_LOCK);
         set_args(&[]);
         env::remove_var("ROS_MASTER_URI");
-        assert_eq!(String::from("http://localhost:11311/"), master());
+        assert_eq!(String::from("http://localhost:11311/"), master(None));
         env::set_var("ROS_MASTER_URI", "http://somebody:21212/");
-        assert_eq!(String::from("http://somebody:21212/"), master());
+        assert_eq!(String::from("http://somebody:21212/"), master(None));
     }
 
     #[test]
@@ -332,9 +335,9 @@ mod tests {
         let testcase = TESTCASE.lock().expect(FAILED_TO_LOCK);
         set_args(&[]);
         env::remove_var("ROS_MASTER_URI");
-        assert_eq!(String::from("http://localhost:11311/"), master());
+        assert_eq!(String::from("http://localhost:11311/"), master(None));
         set_args(&["__master:=http://somebody:21212/"]);
-        assert_eq!(String::from("http://somebody:21212/"), master());
+        assert_eq!(String::from("http://somebody:21212/"), master(None));
     }
 
     #[test]
@@ -343,10 +346,10 @@ mod tests {
         let testcase = TESTCASE.lock().expect(FAILED_TO_LOCK);
         set_args(&[]);
         env::remove_var("ROS_MASTER_URI");
-        assert_eq!(String::from("http://localhost:11311/"), master());
+        assert_eq!(String::from("http://localhost:11311/"), master(None));
         env::set_var("ROS_MASTER_URI", "http://somebody1:21212/");
         set_args(&["__master:=http://somebody2:21212/"]);
-        assert_eq!(String::from("http://somebody2:21212/"), master());
+        assert_eq!(String::from("http://somebody2:21212/"), master(None));
     }
 
     #[test]

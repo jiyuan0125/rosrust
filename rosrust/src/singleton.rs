@@ -21,13 +21,18 @@ lazy_static! {
 
 #[inline]
 pub fn init(name: &str) {
-    try_init(name).expect("ROS init failed!");
+    try_init(name, None).expect("ROS init failed!");
+}
+
+#[inline]
+pub fn init_with_master_uri(name: &str, master_uri: &str) {
+    try_init(name, Some(master_uri)).expect("ROS init failed!");
 }
 
 #[inline]
 pub fn loop_init(name: &str, wait_millis: u64) {
     loop {
-        if try_init(name).is_ok() {
+        if try_init(name, None).is_ok() {
             break;
         }
         log::info!("roscore not found. Will retry until it becomes available...");
@@ -37,16 +42,16 @@ pub fn loop_init(name: &str, wait_millis: u64) {
 }
 
 #[inline]
-pub fn try_init(name: &str) -> Result<()> {
-    try_init_with_options(name, true)
+pub fn try_init(name: &str, master_uri: Option<&str>) -> Result<()> {
+    try_init_with_options(name, master_uri)
 }
 
-pub fn try_init_with_options(name: &str, capture_sigint: bool) -> Result<()> {
+pub fn try_init_with_options(name: &str, master_uri: Option<&str>) -> Result<()> {
     let mut ros = ROS.write().expect(FAILED_TO_LOCK);
     if ros.is_some() {
         bail!(ErrorKind::MultipleInitialization);
     }
-    let client = Ros::new(name)?;
+    let client = Ros::new(name, master_uri)?;
     // if capture_sigint {
     //     let shutdown_sender = client.shutdown_sender();
     //     ctrlc::set_handler(move || {
