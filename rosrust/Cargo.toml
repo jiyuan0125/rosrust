@@ -25,9 +25,8 @@ crossbeam = "0.8.1"
 # colored = "2.0.0"
 
 [dependencies.xml-rpc]
-git = "https://github.com/hky1999/xml-rpc-rs"
-# path = "/home/baru/Work/GitHub/Fork/xml-rpc-rs"
-version = "0.0.12"
+git = "https://github.com/jiyuan0125/xml-rpc-rs"
+branch = "arceos"
 
 [dependencies.ros_message]
 path = "../ros_message"
