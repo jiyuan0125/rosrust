@@ -25,7 +25,7 @@ pub fn hostname() -> String {
     //     return v;
     // }
     // system_hostname()
-    String::from("10.0.0.2")
+    String::from("10.0.2.15")
 }
 
 pub fn namespace() -> String {
@@ -93,10 +93,10 @@ fn find_with_prefix(prefix: &str) -> Option<String> {
 //     String::from("10.0.0.2")
 // }
 
-#[cfg(test)]
-fn system_hostname() -> String {
-    String::from("myhostname")
-}
+// #[cfg(test)]
+// fn system_hostname() -> String {
+//     String::from("myhostname")
+// }
 
 #[cfg(not(test))]
 #[inline]
