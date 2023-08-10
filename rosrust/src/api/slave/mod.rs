@@ -9,7 +9,7 @@ use crate::api::ShutdownManager;
 use crate::tcpros::{Message, PublisherStream, Service, ServicePair, ServiceResult};
 use crate::util::{kill, FAILED_TO_LOCK};
 use crate::{RawMessageDescription, SubscriptionHandler};
-use crossbeam::channel::TryRecvError;
+// use crossbeam::channel::TryRecvError;
 use error_chain::bail;
 use log::error;
 use std::collections::HashMap;
@@ -35,11 +35,11 @@ impl Slave {
         port: u16,
         name: &str,
         param_cache: ParamCache,
-        shutdown_manager: Arc<ShutdownManager>,
+        _shutdown_manager: Arc<ShutdownManager>,
     ) -> Result<Slave> {
         use std::net::ToSocketAddrs;
 
-        let (shutdown_tx, shutdown_rx) = kill::channel(kill::KillMode::Sync);
+        let (shutdown_tx, _shutdown_rx) = kill::channel(kill::KillMode::Sync);
         let handler =
             SlaveHandler::new(master_uri, hostname, name, param_cache, shutdown_tx.clone());
         let publications = handler.publications.clone();
@@ -54,21 +54,23 @@ impl Slave {
 
         let bound_handler = handler.bind(&socket_addr)?;
 
-        let port = bound_handler.local_addr().port();
+        let port = bound_handler.local_addr().unwrap().port();
         let uri = format!("http://{}:{}/", hostname, port);
 
         thread::spawn(move || {
-            loop {
-                match shutdown_rx.try_recv() {
-                    Ok(_) | Err(TryRecvError::Disconnected) => break,
-                    Err(TryRecvError::Empty) => {}
-                }
-                bound_handler.poll();
-                // TODO: use a timed out poll once rouille provides it
-                std::thread::sleep(std::time::Duration::from_millis(5));
-            }
-            shutdown_manager.shutdown();
+            bound_handler.run();
         });
+        // thread::spawn(move || {
+        //     loop {
+        //         match shutdown_rx.try_recv() {
+        //             Ok(_) | Err(TryRecvError::Disconnected) => break,
+        //             Err(TryRecvError::Empty) => {}
+        //         }
+        //         // TODO: use a timed out poll once rouille provides it
+        //         std::thread::sleep(std::time::Duration::from_millis(5));
+        //     }
+        //     shutdown_manager.shutdown();
+        // });
 
         Ok(Slave {
             name: String::from(name),

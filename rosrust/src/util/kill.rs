@@ -30,7 +30,7 @@ pub struct Receiver {
 }
 
 impl Receiver {
-    pub fn try_recv(&self) -> Result<(), channel::TryRecvError> {
+    pub fn _try_recv(&self) -> Result<(), channel::TryRecvError> {
         self.kill_rx.try_recv()
     }
 }

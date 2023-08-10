@@ -7,7 +7,7 @@ use log::{error, info};
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
-use xml_rpc::{self, rouille, Params, Value};
+use xml_rpc::{self, Params, Value};
 
 pub struct SlaveHandler {
     pub subscriptions: SubscriptionsTracker,
@@ -240,7 +240,7 @@ impl SlaveHandler {
         addr: &SocketAddr,
     ) -> rosxmlrpc::error::Result<
         xml_rpc::server::BoundServer<
-            impl Fn(&rouille::Request) -> rouille::Response + Send + Sync + 'static,
+            impl Fn(&xml_rpc::http::Request) -> xml_rpc::http::Response + Send + Sync + 'static,
         >,
     > {
         self.server.bind(addr).map_err(Into::into)
