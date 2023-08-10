@@ -13,6 +13,7 @@ use crate::{RawMessageDescription, SubscriptionHandler};
 use error_chain::bail;
 use log::error;
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicU16, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
@@ -23,6 +24,7 @@ pub struct Slave {
     pub subscriptions: subscriptions::SubscriptionsTracker,
     pub services: Arc<Mutex<HashMap<String, Service>>>,
     pub shutdown_tx: kill::Sender,
+    pub next_publisher_port: Arc<AtomicU16>,
 }
 
 type SerdeResult<T> = Result<T>;
@@ -56,6 +58,7 @@ impl Slave {
 
         let port = bound_handler.local_addr().unwrap().port();
         let uri = format!("http://{}:{}/", hostname, port);
+        let next_publisher_port = Arc::new(AtomicU16::new(port.saturating_add(1)));
 
         thread::spawn(move || {
             bound_handler.run();
@@ -79,7 +82,14 @@ impl Slave {
             subscriptions,
             services,
             shutdown_tx,
+            next_publisher_port: Arc::clone(&next_publisher_port),
         })
+    }
+
+    pub fn get_publisher_port(&self) -> u16 {
+        let publisher_port = self.next_publisher_port.fetch_add(1, Ordering::AcqRel);
+        println!("publisher_port: {}", publisher_port);
+        publisher_port
     }
 
     #[inline]
@@ -144,7 +154,7 @@ impl Slave {
         T: Message,
     {
         self.publications
-            .add(hostname, topic, queue_size, &self.name, message_description)
+            .add(hostname, topic, queue_size, &self.name, message_description, self.get_publisher_port())
     }
 
     #[inline]

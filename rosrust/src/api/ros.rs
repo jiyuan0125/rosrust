@@ -4,13 +4,13 @@ use super::error::{Error, ErrorKind, Result, ResultExt};
 use super::master::{self, Master, Topic};
 use super::naming::{self, Resolver};
 use super::raii::{Publisher, Service, Subscriber};
-use super::resolve;
+use super::{resolve, slave};
 use super::slave::Slave;
 use crate::api::clock::Delay;
 use crate::api::handlers::CallbackSubscriptionHandler;
 use crate::api::slave::ParamCache;
 use crate::api::ShutdownManager;
-use crate::msg::rosgraph_msgs::{Clock as ClockMsg, Log};
+use crate::msg::rosgraph_msgs::Log;
 use crate::msg::std_msgs::Header;
 use crate::rosxmlrpc::client::bad_response_structure;
 use crate::tcpros::{Client, Message, ServicePair, ServiceResult};
@@ -39,21 +39,34 @@ pub struct Ros {
     resolver: Resolver,
     name: String,
     clock: Arc<dyn Clock>,
-    static_subs: Vec<Subscriber>,
+    // static_subs: Vec<Subscriber>,
     logger: Arc<Mutex<Option<Publisher<Log>>>>,
     shutdown_manager: Arc<ShutdownManager>,
 }
 
 impl Ros {
-    pub fn new(name: &str, master_uri: Option<&str>) -> Result<Ros> {
+    pub fn new(
+        name: &str,
+        master_uri: Option<&str>,
+        hostname: Option<&str>,
+        slave_port: Option<u16>,
+    ) -> Result<Ros> {
         let mut namespace = resolve::namespace();
         if !namespace.starts_with('/') {
             namespace = format!("/{}", namespace);
         }
-        let master_uri = resolve::master(master_uri);
-        let hostname = resolve::hostname();
+        let master_uri = match master_uri {
+            Some(master_uri) => master_uri.to_string(),
+            None => resolve::master(master_uri),
+        };
+        println!("master_uri: {}", master_uri);
+        let hostname = match hostname {
+            Some(hostname) => hostname.to_string(),
+            None => resolve::hostname(),
+        };
+        println!("hostname: {}", hostname);
         let name = resolve::name(name);
-        let mut ros = Ros::new_raw(&master_uri, &hostname, &namespace, &name)?;
+        let mut ros = Ros::new_raw(&master_uri, &hostname, &namespace, &name, slave_port)?;
         for (src, dest) in resolve::mappings() {
             ros.map(&src, &dest)?;
         }
@@ -67,28 +80,34 @@ impl Ros {
             param.set_raw(yaml_to_xmlrpc(data)?)?;
         }
 
-        if ros
-            .param("/use_sim_time")
-            .and_then(|v| v.get().ok())
-            .unwrap_or(false)
-        {
-            let clock = Arc::new(SimulatedClock::default());
-            let ros_clock = Arc::clone(&clock);
-            let sub = ros
-                .subscribe::<ClockMsg, _>("/clock", 1, move |v| clock.trigger(v.clock))
-                .chain_err(|| {
-                    ErrorKind::CommunicationIssue("Failed to subscribe to simulated clock".into())
-                })?;
-            ros.static_subs.push(sub);
-            ros.clock = ros_clock;
-        }
+        // if ros
+        //     .param("/use_sim_time")
+        //     .and_then(|v| v.get().ok())
+        //     .unwrap_or(false)
+        // {
+        //     let clock = Arc::new(SimulatedClock::default());
+        //     let ros_clock = Arc::clone(&clock);
+        //     let sub = ros
+        //         .subscribe::<ClockMsg, _>("/clock", 1, move |v| clock.trigger(v.clock))
+        //         .chain_err(|| {
+        //             ErrorKind::CommunicationIssue("Failed to subscribe to simulated clock".into())
+        //         })?;
+        //     ros.static_subs.push(sub);
+        //     ros.clock = ros_clock;
+        // }
 
-        *ros.logger.lock().unwrap() = Some(ros.publish("/rosout", 100)?);
+        // *ros.logger.lock().unwrap() = Some(ros.publish("/rosout", 100)?);
 
         Ok(ros)
     }
 
-    fn new_raw(master_uri: &str, hostname: &str, namespace: &str, name: &str) -> Result<Ros> {
+    fn new_raw(
+        master_uri: &str,
+        hostname: &str,
+        namespace: &str,
+        name: &str,
+        slave_port: Option<u16>,
+    ) -> Result<Ros> {
         let namespace = namespace.trim_end_matches('/');
 
         if name.contains('/') {
@@ -114,12 +133,15 @@ impl Ros {
             move || drop(logger.lock().unwrap().take())
         }));
 
+        let port = slave_port.unwrap_or(0);
+        println!("slave running at: {}", port);
+
         let param_cache = Arc::new(Mutex::new(Default::default()));
         let slave = Slave::new(
             master_uri,
             hostname,
             bind_host,
-            0,
+            port,
             &name,
             Arc::clone(&param_cache),
             Arc::clone(&shutdown_manager),
@@ -135,7 +157,7 @@ impl Ros {
             resolver,
             name,
             clock: Arc::new(RealClock::default()),
-            static_subs: Vec::new(),
+            // static_subs: Vec::new(),
             logger,
             shutdown_manager,
         })
@@ -400,8 +422,7 @@ impl Ros {
     //     }
     // }
     fn log_to_terminal(&self, level: i8, msg: &str, file: &str, line: u32) {
-        let format_string =
-            |prefix| format!("[{} @ {}:{}]: {}", prefix, file, line, msg);
+        let format_string = |prefix| format!("[{} @ {}:{}]: {}", prefix, file, line, msg);
 
         match level {
             Log::DEBUG => println!("{}", format_string("DEBUG")),

@@ -2,7 +2,12 @@ fn main() {
     env_logger::init();
 
     // Initialize node
-    rosrust::init("listener");
+    rosrust::init_with_master_uri_and_hostname_and_slave_port(
+        "listener",
+        "http://localhost:11311",
+        "localhost",
+        5557,
+    );
 
     // Create subscriber
     // The subscriber is stopped when the returned object is destroyed

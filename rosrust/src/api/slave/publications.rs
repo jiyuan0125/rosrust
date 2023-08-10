@@ -49,6 +49,7 @@ impl PublicationsTracker {
         queue_size: usize,
         caller_id: &str,
         message_description: RawMessageDescription,
+        port: u16,
     ) -> error::tcpros::Result<PublisherStream<T>> {
         use std::collections::hash_map::Entry;
         match self
@@ -62,7 +63,7 @@ impl PublicationsTracker {
                 .stream(queue_size, message_description),
             Entry::Vacant(entry) => {
                 let publisher = Publisher::new(
-                    format!("{}:0", hostname).as_str(),
+                    format!("{}:{}", hostname, port).as_str(),
                     topic,
                     queue_size,
                     caller_id,

@@ -2,7 +2,12 @@ fn main() {
     env_logger::init();
 
     // Initialize node
-    rosrust::init("talker");
+    rosrust::init_with_master_uri_and_hostname_and_slave_port(
+        "talker",
+        "http://localhost:11311",
+        "localhost",
+        5555,
+    );
 
     // Create publisher
     let chatter_pub = rosrust::publish("chatter", 2).unwrap();
@@ -13,7 +18,7 @@ fn main() {
     let mut count = 0;
 
     // Create object that maintains 10Hz between sleep requests
-    let rate = rosrust::rate(0.1);
+    let rate = rosrust::rate(1.0);
 
     // Breaks when a shutdown signal is sent
     while rosrust::is_ok() {

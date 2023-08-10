@@ -1,31 +1,26 @@
 use std::{self, env};
 
 pub fn master(master_uri: Option<&str>) -> String {
-    // if let Some(v) = find_with_prefix("__master:=") {
-    //     return v;
-    // }
-    // env::var("ROS_MASTER_URI").unwrap_or_else(|_| String::from("http://localhost:11311/"))
-    match master_uri {
-        Some(v) => String::from(v),
-        None => String::from("http://localhost:11311/"),
+    if let Some(v) = find_with_prefix("__master:=") {
+        return v;
     }
+    env::var("ROS_MASTER_URI").unwrap_or_else(|_| String::from("http://localhost:11311/"))
 }
 
 pub fn hostname() -> String {
-    // if let Some(v) = find_with_prefix("__hostname:=") {
-    //     return v;
-    // }
-    // if let Some(v) = find_with_prefix("__ip:=") {
-    //     return v;
-    // }
-    // if let Ok(v) = env::var("ROS_HOSTNAME") {
-    //     return v;
-    // }
-    // if let Ok(v) = env::var("ROS_IP") {
-    //     return v;
-    // }
-    // system_hostname()
-    String::from("10.0.2.15")
+    if let Some(v) = find_with_prefix("__hostname:=") {
+        return v;
+    }
+    if let Some(v) = find_with_prefix("__ip:=") {
+        return v;
+    }
+    if let Ok(v) = env::var("ROS_HOSTNAME") {
+        return v;
+    }
+    if let Ok(v) = env::var("ROS_IP") {
+        return v;
+    }
+    system_hostname()
 }
 
 pub fn namespace() -> String {
@@ -84,19 +79,19 @@ fn find_with_prefix(prefix: &str) -> Option<String> {
         .map(|v| String::from(v.trim_start_matches(prefix)))
 }
 
-// #[cfg(not(test))]
-// fn system_hostname() -> String {
-//     // ::hostname::get()
-//     //     .expect("Unable to retrieve hostname from the system.")
-//     //     .to_string_lossy()
-//     //     .into_owned()
-//     String::from("10.0.0.2")
-// }
+#[cfg(not(test))]
+fn system_hostname() -> String {
+    // ::hostname::get()
+    //     .expect("Unable to retrieve hostname from the system.")
+    //     .to_string_lossy()
+    //     .into_owned()
+    String::from("localhost")
+}
 
-// #[cfg(test)]
-// fn system_hostname() -> String {
-//     String::from("myhostname")
-// }
+#[cfg(test)]
+fn system_hostname() -> String {
+    String::from("myhostname")
+}
 
 #[cfg(not(test))]
 #[inline]

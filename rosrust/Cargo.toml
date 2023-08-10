@@ -26,7 +26,7 @@ crossbeam = "0.8.1"
 
 [dependencies.xml-rpc]
 git = "https://github.com/jiyuan0125/xml-rpc-rs"
-branch = "arceos"
+rev = "6d7ac1608312c3d0cc80f13ea80d871120d3f698"
 
 [dependencies.ros_message]
 path = "../ros_message"
