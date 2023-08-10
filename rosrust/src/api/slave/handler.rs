@@ -77,7 +77,8 @@ impl SlaveHandler {
         });
 
         server.register_value("getPid", "PID", |_args| {
-            Ok(Value::Int(std::process::id() as i32))
+            // Ok(Value::Int(std::process::id() as i32))
+            Ok(Value::Int(2000))
         });
 
         let subscriptions = SubscriptionsTracker::default();
